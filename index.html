@@ -2,24 +2,63 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Countdown 256×64</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Countdown 256x64 - Fireworks</title>
 <style>
-  html, body { margin:0; padding:0; width:256px; height:64px; overflow:hidden; background:#081638; }
-  #display { width:256px; height:64px; display:flex; align-items:center; justify-content:center; background:#081638; color:#fff; font:700 52px/1 Arial,Helvetica,sans-serif; font-variant-numeric:tabular-nums; }
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#081638}
+#display{display:block;width:256px;height:64px;background:#081638}
 </style>
 </head>
 <body>
-<div id="display" aria-label="Conto alla rovescia">10</div>
+<canvas id="display" width="256" height="64"></canvas>
 <script>
-  const display = document.getElementById('display');
-  const start = performance.now();
-  function update() {
-    const seconds = Math.floor((performance.now() - start) / 1000);
-    display.textContent = String(10 - (seconds % 11));
-    setTimeout(update, 100);
+(function(){
+'use strict';
+var canvas=document.getElementById('display');
+var ctx=canvas.getContext('2d',{alpha:false});
+var W=256,H=64,BG='#081638';
+var colors=['#ffdf52','#ff5566','#46dcff','#72ff9c','#e28aff','#ffffff','#ff983d'];
+var particles=[],lastBurst=-1;
+var cycleStart=performance.now();
+var cycleLength=16000; // 11 secondi (10...0) + 5 secondi fuochi
+function burst(x,y){
+ var c=colors[Math.floor(Math.random()*colors.length)];
+ for(var i=0;i<22;i++){
+  var a=i*Math.PI*2/22+Math.random()*.2;
+  var speed=.35+Math.random()*.9;
+  particles.push({x:x,y:y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:28+Math.random()*18,max:46,color:c});
+ }
+}
+function render(now){
+ var elapsed=(now-cycleStart)%cycleLength;
+ ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+ if(elapsed<11000){
+  var value=10-Math.floor(elapsed/1000);
+  particles=[];lastBurst=-1;
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 48px Arial, sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(String(value),W/2,H/2+2);
+ }else{
+  var fireTime=elapsed-11000;
+  var burstIndex=Math.floor(fireTime/380);
+  if(burstIndex!==lastBurst){
+   lastBurst=burstIndex;
+   burst(22+Math.random()*212,12+Math.random()*35);
   }
-  update();
+  for(var i=particles.length-1;i>=0;i--){
+   var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.013;p.life--;
+   if(p.life<=0){particles.splice(i,1);continue;}
+   ctx.globalAlpha=Math.min(1,p.life/15);
+   ctx.fillStyle=p.color;
+   ctx.fillRect(Math.round(p.x),Math.round(p.y),2,2);
+  }
+  ctx.globalAlpha=1;
+ }
+ requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+})();
 </script>
 </body>
 </html>
