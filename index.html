@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown 256×64</title>
+<style>
+  html, body { margin:0; padding:0; width:256px; height:64px; overflow:hidden; background:#081638; }
+  #display { width:256px; height:64px; display:flex; align-items:center; justify-content:center; background:#081638; color:#fff; font:700 52px/1 Arial,Helvetica,sans-serif; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<div id="display" aria-label="Conto alla rovescia">10</div>
+<script>
+  const display = document.getElementById('display');
+  const start = performance.now();
+  function update() {
+    const seconds = Math.floor((performance.now() - start) / 1000);
+    display.textContent = String(10 - (seconds % 11));
+    setTimeout(update, 100);
+  }
+  update();
+</script>
+</body>
+</html>
